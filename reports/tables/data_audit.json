@@ -1,0 +1,22 @@
+{
+  "rows": 30000,
+  "columns": 25,
+  "duplicate_ids": 0,
+  "missing_cells": 0,
+  "default_count": 6636,
+  "default_rate": 0.2212,
+  "split_summary": [
+    {
+      "split": "development",
+      "rows": 24000,
+      "defaults": 5309,
+      "default_rate": 0.22120833333333334
+    },
+    {
+      "split": "test_locked",
+      "rows": 6000,
+      "defaults": 1327,
+      "default_rate": 0.22116666666666668
+    }
+  ]
+}

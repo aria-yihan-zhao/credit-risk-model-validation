@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local IDE and OS files
+.vscode/
+.DS_Store
+
+# Raw and derived datasets (keep only placeholders and split IDs)
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+
+# Generated figures and model artifacts
+reports/figures/*.png
+reports/figures/*.pdf
+models/*
+!models/.gitkeep
