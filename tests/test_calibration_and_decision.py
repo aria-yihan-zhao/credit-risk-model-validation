@@ -6,6 +6,7 @@ import numpy as np
 
 from credit_risk.calibration import cross_fitted_calibration
 from credit_risk.decision import theoretical_cost_threshold, threshold_metrics
+from credit_risk.evaluation import subgroup_metrics
 
 
 def test_cross_fitted_platt_probabilities_are_valid() -> None:
@@ -30,3 +31,14 @@ def test_cost_threshold_and_counts() -> None:
     assert result["false_positive"] == 1
     assert result["true_negative"] == 1
     assert result["false_negative"] == 1
+
+
+def test_subgroup_metrics_reports_decision_rates() -> None:
+    result = subgroup_metrics(
+        np.array([0, 0, 1, 1]),
+        np.array([0.1, 0.8, 0.2, 0.9]),
+        threshold=0.5,
+    )
+    assert result["flag_rate"] == 0.5
+    assert result["recall"] == 0.5
+    assert result["false_positive_rate"] == 0.5

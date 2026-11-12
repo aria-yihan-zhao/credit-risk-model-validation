@@ -9,7 +9,7 @@ An end-to-end credit-risk project comparing an interpretable logistic-regression
 - [x] Reproducible download from the official UCI repository
 - [x] Data-contract and leakage audit
 - [x] Locked, stratified development/test split
-- [ ] Exploratory analysis and feature policy
+- [x] Exploratory analysis and responsible feature policy
 - [x] Logistic-regression baseline
 - [x] Gradient-boosting challenger
 - [x] Calibration and cost-sensitive thresholding
@@ -51,17 +51,17 @@ Primary metrics will include ROC-AUC, PR-AUC, Brier score, precision, recall, an
 
 ## Baseline result
 
-The first model is an unweighted, L2-regularized logistic regression. Numerical variables are standardized, documented categorical variables are one-hot encoded, and undocumented education/marital-status codes are consolidated into an explicit other/unknown category rather than silently deleted.
+The first model is an unweighted, L2-regularized logistic regression. Numerical variables are standardized. `SEX`, `EDUCATION`, `MARRIAGE`, and `AGE` are excluded from both predictive models and retained only for subgroup auditing; model inputs are limited to credit limit and prior repayment, bill, and payment behavior.
 
 The values below are **out-of-fold predictions from five-fold stratified cross-validation on the 24,000-row development sample**. The 6,000-row final test sample has not been accessed.
 
 | Metric | Development OOF result |
 |---|---:|
-| ROC-AUC | 0.724 |
-| PR-AUC / Average precision | 0.505 |
+| ROC-AUC | 0.721 |
+| PR-AUC / Average precision | 0.504 |
 | Brier score | 0.145 |
-| Log loss | 0.465 |
-| 10-bin expected calibration error | 0.048 |
+| Log loss | 0.467 |
+| 10-bin expected calibration error | 0.046 |
 
 ![Logistic-regression baseline validation](reports/figures/logistic_baseline_validation.png)
 
@@ -73,15 +73,15 @@ The XGBoost challenger uses the same 24,000 development rows, target, feature po
 
 | Model | ROC-AUC | PR-AUC | Brier score | Log loss | ECE (10 bins) |
 |---|---:|---:|---:|---:|---:|
-| Logistic regression | 0.724 | 0.505 | 0.145 | 0.465 | 0.048 |
-| XGBoost | **0.781** | **0.553** | **0.134** | **0.429** | **0.005** |
+| Logistic regression | 0.721 | 0.504 | 0.145 | 0.467 | 0.046 |
+| XGBoost | **0.779** | **0.550** | **0.135** | **0.430** | **0.007** |
 
 ![Fair model comparison](reports/figures/model_comparison_validation.png)
 
 A 500-repetition paired bootstrap on the same out-of-fold rows estimated:
 
-- ROC-AUC gain: 0.057 (95% interval: 0.051 to 0.064)
-- PR-AUC gain: 0.048 (95% interval: 0.041 to 0.056)
+- ROC-AUC gain: 0.058 (95% interval: 0.052 to 0.065)
+- PR-AUC gain: 0.046 (95% interval: 0.038 to 0.054)
 - Brier-score reduction: 0.010 (95% interval: 0.009 to 0.011)
 
 These results support XGBoost as the current challenger winner on development data. They do not yet constitute final generalization evidence; stability tests and one final locked-test evaluation remain.
@@ -92,9 +92,9 @@ Calibration was evaluated with a second layer of five-fold cross-fitting on the 
 
 | Calibration method | Brier score | Log loss | ECE (10 bins) |
 |---|---:|---:|---:|
-| Raw XGBoost | **0.134445** | **0.428913** | 0.004745 |
-| Platt scaling | 0.134454 | 0.428933 | 0.005053 |
-| Isotonic regression | 0.134680 | 0.433603 | **0.003824** |
+| Raw XGBoost | **0.135048** | **0.430492** | 0.007161 |
+| Platt scaling | 0.135057 | 0.430506 | 0.006702 |
+| Isotonic regression | 0.135238 | 0.435159 | **0.003965** |
 
 The pre-specified selection rule prioritizes Brier score, with log loss as a tie-breaker. The raw XGBoost probabilities are therefore retained: adding a calibrator would marginally worsen overall probability accuracy.
 
@@ -104,9 +104,9 @@ Decision thresholds are framed as **enhanced-review policies**, not automatic cr
 
 | Assumed false-negative cost | Theoretical threshold | Flag rate | Precision | Recall | Specificity |
 |---:|---:|---:|---:|---:|---:|
-| 2x false positive | 0.333 | 19.1% | 58.0% | 50.1% | 89.7% |
-| 5x false positive | 0.167 | 42.6% | 38.5% | 74.1% | 66.3% |
-| 10x false positive | 0.091 | 75.9% | 27.1% | 93.0% | 29.0% |
+| 2x false positive | 0.333 | 18.9% | 57.8% | 49.5% | 89.8% |
+| 5x false positive | 0.167 | 42.5% | 38.5% | 73.9% | 66.4% |
+| 10x false positive | 0.091 | 76.1% | 27.1% | 93.2% | 28.7% |
 
 The 5x scenario is the primary illustration, not a claim about an actual institution's economics. Its threshold follows directly from calibrated probability decision theory: `1 / (1 + 5) = 0.167`. The policy remains frozen before the final test is accessed.
 
@@ -117,13 +117,21 @@ Because the dataset has no account-level observation date, this project does not
 | Scenario | Mean risk: reference | Mean risk: comparison | PSI | Descriptive band |
 |---|---:|---:|---:|---|
 | Same-distribution random-half control | 0.223 | 0.220 | 0.001 | Low shift |
-| Payment amounts reduced by 30% | 0.221 | 0.232 | 0.024 | Low shift |
-| Non-negative repayment-delay codes increased by one | 0.221 | 0.309 | 0.577 | High shift |
-| Combined delay and payment stress | 0.221 | 0.322 | 0.713 | High shift |
+| Payment amounts reduced by 30% | 0.221 | 0.232 | 0.026 | Low shift |
+| Non-negative repayment-delay codes increased by one | 0.221 | 0.301 | 0.535 | High shift |
+| Combined delay and payment stress | 0.221 | 0.314 | 0.690 | High shift |
 
 ![Development-only stability stress test](reports/figures/stability_stress_test.png)
 
 The 0.10 and 0.25 PSI bands are descriptive monitoring heuristics, not regulatory pass/fail rules. The results show that the model's score distribution is relatively insensitive to a payment-amount reduction alone but highly sensitive to broad deterioration in repayment status. These scenarios are robustness probes, not claims about future portfolio performance.
+
+## Descriptive subgroup audit
+
+Demographic variables are not model inputs. They are used after scoring to inspect whether the frozen 0.167 enhanced-review threshold behaves differently across recorded sex, education, marital-status, and age groups.
+
+![Descriptive subgroup audit](reports/figures/subgroup_audit.png)
+
+The two recorded sex groups have recall of 75.2% and 72.9%, with false-positive rates of 35.2% and 32.5%. Larger education, marital-status, and age groups show broadly similar recall, but the 379-row education other/unknown group is notably unstable. The audit is descriptive, sample-dependent, and not a legal or causal fairness certification.
 
 ## Repository structure
 
@@ -152,6 +160,11 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 python scripts/download_data.py
 python scripts/run_data_audit.py
+python scripts/train_logistic_baseline.py
+python scripts/train_xgboost_challenger.py
+python scripts/calibrate_and_select_threshold.py
+python scripts/run_stability_stress_test.py
+python scripts/run_subgroup_audit.py
 pytest
 ```
 

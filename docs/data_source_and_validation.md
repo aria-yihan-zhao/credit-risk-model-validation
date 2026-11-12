@@ -23,6 +23,10 @@ The target is whether a client defaults in the following month. The predictor se
 - The final test sample is locked before exploratory model development.
 - Threshold selection is performed without reference to the final test outcomes.
 
+## Responsible feature policy
+
+`SEX`, `EDUCATION`, `MARRIAGE`, and `AGE` are excluded from both predictive models. They are retained only for descriptive subgroup diagnostics. The candidate models use credit limit, repayment-status history, bill amounts, and prior payment amounts.
+
 ## Why this is not an out-of-time validation
 
 The monthly columns describe each client's historical payment behavior, but the dataset does not supply an account-level observation timestamp or origination ordering. Therefore, a true temporal holdout cannot be reconstructed. A random stratified split is used transparently, with PSI and drift scenarios added as robustness tests—not presented as temporal evidence.

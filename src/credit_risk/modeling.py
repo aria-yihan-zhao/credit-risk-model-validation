@@ -6,15 +6,16 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import StandardScaler
 from xgboost import XGBClassifier
 
 from credit_risk.data import EXPECTED_FEATURES, TARGET
 
-CATEGORICAL_FEATURES = ["SEX", "EDUCATION", "MARRIAGE"]
-NUMERIC_FEATURES = [
-    feature for feature in EXPECTED_FEATURES if feature not in CATEGORICAL_FEATURES
+AUDIT_ONLY_FEATURES = ["SEX", "EDUCATION", "MARRIAGE", "AGE"]
+MODEL_FEATURES = [
+    feature for feature in EXPECTED_FEATURES if feature not in AUDIT_ONLY_FEATURES
 ]
+NUMERIC_FEATURES = MODEL_FEATURES
 
 
 def apply_documented_category_policy(frame: pd.DataFrame) -> pd.DataFrame:
@@ -31,9 +32,13 @@ def apply_documented_category_policy(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def split_features_target(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
-    """Return model features and target, excluding the account identifier."""
+    """Return behavioral model features and target.
+
+    Demographic fields remain available for subgroup diagnostics but are not
+    provided to either candidate model.
+    """
     clean = apply_documented_category_policy(frame)
-    return clean[EXPECTED_FEATURES].copy(), clean[TARGET].astype(int).copy()
+    return clean[MODEL_FEATURES].copy(), clean[TARGET].astype(int).copy()
 
 
 def build_logistic_pipeline() -> Pipeline:
@@ -46,11 +51,6 @@ def build_logistic_pipeline() -> Pipeline:
     preprocessor = ColumnTransformer(
         transformers=[
             ("numeric", StandardScaler(), NUMERIC_FEATURES),
-            (
-                "categorical",
-                OneHotEncoder(drop="first", handle_unknown="ignore"),
-                CATEGORICAL_FEATURES,
-            ),
         ],
         remainder="drop",
         verbose_feature_names_out=False,
@@ -83,11 +83,6 @@ def build_xgboost_pipeline() -> Pipeline:
     preprocessor = ColumnTransformer(
         transformers=[
             ("numeric", "passthrough", NUMERIC_FEATURES),
-            (
-                "categorical",
-                OneHotEncoder(drop="first", handle_unknown="ignore"),
-                CATEGORICAL_FEATURES,
-            ),
         ],
         remainder="drop",
         verbose_feature_names_out=False,

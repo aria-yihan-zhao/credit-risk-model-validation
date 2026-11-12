@@ -37,3 +37,29 @@ def probability_metrics(y_true: np.ndarray, probability: np.ndarray) -> dict[str
         "log_loss": float(log_loss(y_true, probability)),
         "ece_10_bin": expected_calibration_error(y_true, probability, bins=10),
     }
+
+
+def subgroup_metrics(
+    y_true: np.ndarray, probability: np.ndarray, *, threshold: float
+) -> dict[str, float | int]:
+    """Return descriptive score and decision metrics for one audit subgroup."""
+    y_true = np.asarray(y_true, dtype=int)
+    probability = np.asarray(probability, dtype=float)
+    predicted = probability >= threshold
+    positive = y_true == 1
+    negative = ~positive
+    true_positive = int(np.sum(predicted & positive))
+    false_positive = int(np.sum(predicted & negative))
+    true_negative = int(np.sum((~predicted) & negative))
+    false_negative = int(np.sum((~predicted) & positive))
+    return {
+        "rows": int(len(y_true)),
+        "default_rate": float(y_true.mean()),
+        "mean_predicted_risk": float(probability.mean()),
+        "roc_auc": float(roc_auc_score(y_true, probability)),
+        "brier_score": float(brier_score_loss(y_true, probability)),
+        "flag_rate": float(predicted.mean()),
+        "precision": float(true_positive / (true_positive + false_positive)),
+        "recall": float(true_positive / (true_positive + false_negative)),
+        "false_positive_rate": float(false_positive / (false_positive + true_negative)),
+    }
