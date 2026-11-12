@@ -1,0 +1,12 @@
+{
+  "evaluation_sample": "development_out_of_fold_only",
+  "rows": 24000,
+  "default_rate": 0.22120833333333334,
+  "cross_validation": "5-fold stratified, shuffled, random_state=5420",
+  "final_test_accessed": false,
+  "roc_auc": 0.7238045081674922,
+  "pr_auc": 0.5053352733382164,
+  "brier_score": 0.14463706435525564,
+  "log_loss": 0.4648419841955822,
+  "ece_10_bin": 0.04792845844547634
+}

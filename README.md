@@ -10,7 +10,7 @@ An end-to-end credit-risk project comparing an interpretable logistic-regression
 - [x] Data-contract and leakage audit
 - [x] Locked, stratified development/test split
 - [ ] Exploratory analysis and feature policy
-- [ ] Logistic-regression baseline
+- [x] Logistic-regression baseline
 - [ ] Gradient-boosting challenger
 - [ ] Calibration and cost-sensitive thresholding
 - [ ] PSI and drift stress tests
@@ -48,6 +48,24 @@ Instead, it uses:
 | Gradient boosting | Nonlinear challenger | incremental lift, calibration, stability |
 
 Primary metrics will include ROC-AUC, PR-AUC, Brier score, precision, recall, and expected decision cost at a selected threshold.
+
+## Baseline result
+
+The first model is an unweighted, L2-regularized logistic regression. Numerical variables are standardized, documented categorical variables are one-hot encoded, and undocumented education/marital-status codes are consolidated into an explicit other/unknown category rather than silently deleted.
+
+The values below are **out-of-fold predictions from five-fold stratified cross-validation on the 24,000-row development sample**. The 6,000-row final test sample has not been accessed.
+
+| Metric | Development OOF result |
+|---|---:|
+| ROC-AUC | 0.724 |
+| PR-AUC / Average precision | 0.505 |
+| Brier score | 0.145 |
+| Log loss | 0.465 |
+| 10-bin expected calibration error | 0.048 |
+
+![Logistic-regression baseline validation](reports/figures/logistic_baseline_validation.png)
+
+The baseline provides meaningful risk ranking, but the calibration plot shows room for improvement. The next stage will test whether gradient boosting adds discrimination and whether post-model calibration improves probability quality without using the locked final test set.
 
 ## Repository structure
 
