@@ -11,7 +11,7 @@ An end-to-end credit-risk project comparing an interpretable logistic-regression
 - [x] Locked, stratified development/test split
 - [ ] Exploratory analysis and feature policy
 - [x] Logistic-regression baseline
-- [ ] Gradient-boosting challenger
+- [x] Gradient-boosting challenger
 - [ ] Calibration and cost-sensitive thresholding
 - [ ] PSI and drift stress tests
 - [ ] Final model card and recruiter-ready summary
@@ -65,7 +65,26 @@ The values below are **out-of-fold predictions from five-fold stratified cross-v
 
 ![Logistic-regression baseline validation](reports/figures/logistic_baseline_validation.png)
 
-The baseline provides meaningful risk ranking, but the calibration plot shows room for improvement. The next stage will test whether gradient boosting adds discrimination and whether post-model calibration improves probability quality without using the locked final test set.
+The baseline provides meaningful risk ranking, but the calibration plot shows room for improvement.
+
+## Fair challenger comparison
+
+The XGBoost challenger uses the same 24,000 development rows, target, feature policy, five stratified folds, random seed, and evaluation metrics as the logistic baseline. Numeric scaling is omitted for XGBoost because tree splits are scale invariant; all other data boundaries remain identical. Hyperparameters were specified before the comparison, and neither model accessed the locked final test set.
+
+| Model | ROC-AUC | PR-AUC | Brier score | Log loss | ECE (10 bins) |
+|---|---:|---:|---:|---:|---:|
+| Logistic regression | 0.724 | 0.505 | 0.145 | 0.465 | 0.048 |
+| XGBoost | **0.781** | **0.553** | **0.134** | **0.429** | **0.005** |
+
+![Fair model comparison](reports/figures/model_comparison_validation.png)
+
+A 500-repetition paired bootstrap on the same out-of-fold rows estimated:
+
+- ROC-AUC gain: 0.057 (95% interval: 0.051 to 0.064)
+- PR-AUC gain: 0.048 (95% interval: 0.041 to 0.056)
+- Brier-score reduction: 0.010 (95% interval: 0.009 to 0.011)
+
+These results support XGBoost as the current challenger winner on development data. They do not yet constitute final generalization evidence; calibration, decision-threshold policy, stability tests, and one final locked-test evaluation remain.
 
 ## Repository structure
 

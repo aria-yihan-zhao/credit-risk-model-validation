@@ -7,6 +7,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from xgboost import XGBClassifier
 
 from credit_risk.data import EXPECTED_FEATURES, TARGET
 
@@ -64,6 +65,52 @@ def build_logistic_pipeline() -> Pipeline:
                     max_iter=2_000,
                     solver="lbfgs",
                     random_state=5420,
+                ),
+            ),
+        ]
+    )
+
+
+def build_xgboost_pipeline() -> Pipeline:
+    """Build a regularized gradient-boosting challenger.
+
+    The challenger receives the same raw features as the logistic baseline.
+    Numeric variables are passed through without scaling because tree splits are
+    scale invariant; categorical variables use the same one-hot policy.
+    Class weighting is not used so predicted probabilities retain the observed
+    development prevalence before the explicit calibration stage.
+    """
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("numeric", "passthrough", NUMERIC_FEATURES),
+            (
+                "categorical",
+                OneHotEncoder(drop="first", handle_unknown="ignore"),
+                CATEGORICAL_FEATURES,
+            ),
+        ],
+        remainder="drop",
+        verbose_feature_names_out=False,
+    )
+    return Pipeline(
+        steps=[
+            ("preprocessor", preprocessor),
+            (
+                "model",
+                XGBClassifier(
+                    objective="binary:logistic",
+                    eval_metric="logloss",
+                    n_estimators=500,
+                    learning_rate=0.03,
+                    max_depth=3,
+                    min_child_weight=8,
+                    subsample=0.85,
+                    colsample_bytree=0.85,
+                    reg_alpha=0.10,
+                    reg_lambda=5.0,
+                    tree_method="hist",
+                    random_state=5420,
+                    n_jobs=-1,
                 ),
             ),
         ]

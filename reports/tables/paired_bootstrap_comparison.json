@@ -1,0 +1,25 @@
+{
+  "definition": {
+    "roc_auc_gain": "XGBoost minus logistic; positive favors XGBoost",
+    "pr_auc_gain": "XGBoost minus logistic; positive favors XGBoost",
+    "brier_reduction": "logistic minus XGBoost; positive favors XGBoost"
+  },
+  "repetitions": 500,
+  "results": {
+    "roc_auc_gain": {
+      "mean": 0.05739933106639064,
+      "ci_2_5": 0.05135292074049625,
+      "ci_97_5": 0.06372190739094884
+    },
+    "pr_auc_gain": {
+      "mean": 0.047770099681804006,
+      "ci_2_5": 0.04070091297101219,
+      "ci_97_5": 0.05597192915011324
+    },
+    "brier_reduction": {
+      "mean": 0.010204284113622482,
+      "ci_2_5": 0.009207430199368438,
+      "ci_97_5": 0.011237529169980423
+    }
+  }
+}
