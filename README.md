@@ -4,7 +4,7 @@ An end-to-end credit-risk project comparing an interpretable logistic-regression
 
 ## Current status
 
-**Milestone 1 — data foundation:** in progress
+**Milestone 3 — validation and decision policy:** in progress
 
 - [x] Reproducible download from the official UCI repository
 - [x] Data-contract and leakage audit
@@ -12,8 +12,8 @@ An end-to-end credit-risk project comparing an interpretable logistic-regression
 - [ ] Exploratory analysis and feature policy
 - [x] Logistic-regression baseline
 - [x] Gradient-boosting challenger
-- [ ] Calibration and cost-sensitive thresholding
-- [ ] PSI and drift stress tests
+- [x] Calibration and cost-sensitive thresholding
+- [x] PSI and drift stress tests
 - [ ] Final model card and recruiter-ready summary
 
 ## Business question
@@ -84,7 +84,46 @@ A 500-repetition paired bootstrap on the same out-of-fold rows estimated:
 - PR-AUC gain: 0.048 (95% interval: 0.041 to 0.056)
 - Brier-score reduction: 0.010 (95% interval: 0.009 to 0.011)
 
-These results support XGBoost as the current challenger winner on development data. They do not yet constitute final generalization evidence; calibration, decision-threshold policy, stability tests, and one final locked-test evaluation remain.
+These results support XGBoost as the current challenger winner on development data. They do not yet constitute final generalization evidence; stability tests and one final locked-test evaluation remain.
+
+## Calibration decision and cost-sensitive policy
+
+Calibration was evaluated with a second layer of five-fold cross-fitting on the development OOF scores. This prevents a calibration map from being fitted and assessed on the same observations.
+
+| Calibration method | Brier score | Log loss | ECE (10 bins) |
+|---|---:|---:|---:|
+| Raw XGBoost | **0.134445** | **0.428913** | 0.004745 |
+| Platt scaling | 0.134454 | 0.428933 | 0.005053 |
+| Isotonic regression | 0.134680 | 0.433603 | **0.003824** |
+
+The pre-specified selection rule prioritizes Brier score, with log loss as a tie-breaker. The raw XGBoost probabilities are therefore retained: adding a calibrator would marginally worsen overall probability accuracy.
+
+![Calibration and illustrative decision-cost policy](reports/figures/calibration_and_cost_policy.png)
+
+Decision thresholds are framed as **enhanced-review policies**, not automatic credit denials. Because the dataset contains no real bank cost ledger, the analysis reports transparent hypothetical scenarios with false-positive cost normalized to one:
+
+| Assumed false-negative cost | Theoretical threshold | Flag rate | Precision | Recall | Specificity |
+|---:|---:|---:|---:|---:|---:|
+| 2x false positive | 0.333 | 19.1% | 58.0% | 50.1% | 89.7% |
+| 5x false positive | 0.167 | 42.6% | 38.5% | 74.1% | 66.3% |
+| 10x false positive | 0.091 | 75.9% | 27.1% | 93.0% | 29.0% |
+
+The 5x scenario is the primary illustration, not a claim about an actual institution's economics. Its threshold follows directly from calibrated probability decision theory: `1 / (1 + 5) = 0.167`. The policy remains frozen before the final test is accessed.
+
+## PSI stability stress tests
+
+Because the dataset has no account-level observation date, this project does not fabricate temporal monitoring data. Instead, the fitted development model is subjected to transparent synthetic stresses, while a random-half control checks the PSI implementation against ordinary sampling variation.
+
+| Scenario | Mean risk: reference | Mean risk: comparison | PSI | Descriptive band |
+|---|---:|---:|---:|---|
+| Same-distribution random-half control | 0.223 | 0.220 | 0.001 | Low shift |
+| Payment amounts reduced by 30% | 0.221 | 0.232 | 0.024 | Low shift |
+| Non-negative repayment-delay codes increased by one | 0.221 | 0.309 | 0.577 | High shift |
+| Combined delay and payment stress | 0.221 | 0.322 | 0.713 | High shift |
+
+![Development-only stability stress test](reports/figures/stability_stress_test.png)
+
+The 0.10 and 0.25 PSI bands are descriptive monitoring heuristics, not regulatory pass/fail rules. The results show that the model's score distribution is relatively insensitive to a payment-amount reduction alone but highly sensitive to broad deterioration in repayment status. These scenarios are robustness probes, not claims about future portfolio performance.
 
 ## Repository structure
 

@@ -1,0 +1,12 @@
+{
+  "evaluation_sample": "development_cross_fitted_oof_only",
+  "selected_calibration_method": "raw",
+  "selection_rule": "lowest cross-fitted Brier score; log loss used as tie-breaker",
+  "primary_cost_scenario": {
+    "false_positive_cost": 1.0,
+    "false_negative_cost": 5.0,
+    "interpretation": "Illustrative enhanced-review policy only; not an observed bank cost. A false negative is assumed five times as costly as a false positive.",
+    "threshold": 0.16666666666666666
+  },
+  "final_test_accessed": false
+}
