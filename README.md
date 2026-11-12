@@ -4,7 +4,7 @@ An end-to-end credit-risk project comparing an interpretable logistic-regression
 
 ## Current status
 
-**Milestone 3 — validation and decision policy:** in progress
+**Milestone 4 — governed final validation:** complete
 
 - [x] Reproducible download from the official UCI repository
 - [x] Data-contract and leakage audit
@@ -14,7 +14,7 @@ An end-to-end credit-risk project comparing an interpretable logistic-regression
 - [x] Gradient-boosting challenger
 - [x] Calibration and cost-sensitive thresholding
 - [x] PSI and drift stress tests
-- [ ] Final model card and recruiter-ready summary
+- [x] Final model card and recruiter-ready summary
 
 ## Business question
 
@@ -133,6 +133,31 @@ Demographic variables are not model inputs. They are used after scoring to inspe
 
 The two recorded sex groups have recall of 75.2% and 72.9%, with false-positive rates of 35.2% and 32.5%. Larger education, marital-status, and age groups show broadly similar recall, but the 379-row education other/unknown group is notably unstable. The audit is descriptive, sample-dependent, and not a legal or causal fairness certification.
 
+## Single locked final-test evaluation
+
+All model, feature, calibration, and threshold decisions were frozen and committed before the 6,000-row test sample was accessed. The evaluation script records the pre-test commit and refuses to run again after the result artifact exists.
+
+| Metric | Locked-test result | 95% bootstrap interval |
+|---|---:|---:|
+| ROC-AUC | **0.787** | 0.772 to 0.802 |
+| PR-AUC / Average precision | **0.571** | 0.542 to 0.598 |
+| Brier score | **0.132** | 0.126 to 0.137 |
+| Log loss | **0.422** | 0.408 to 0.436 |
+
+At the frozen 0.167 enhanced-review threshold, the final test produced:
+
+- recall: 73.8%;
+- precision: 38.5%;
+- specificity: 66.6%;
+- review flag rate: 42.4%;
+- 979 true positives, 1,563 false positives, 3,110 true negatives, and 348 false negatives.
+
+The development-to-test score PSI is 0.0029, indicating very little score-distribution shift between the fixed samples. No model or policy decision was changed after observing the test.
+
+![Single locked final-test evaluation](reports/figures/final_test_validation.png)
+
+See the [model card](docs/model_card.md) for intended use, governance, limitations, and responsible-use boundaries.
+
 ## Repository structure
 
 ```text
@@ -167,6 +192,8 @@ python scripts/run_stability_stress_test.py
 python scripts/run_subgroup_audit.py
 pytest
 ```
+
+`scripts/evaluate_locked_test_once.py` is intentionally omitted from the normal rerun sequence: the governed final evaluation has already occurred and the script will reject another run while its result artifact exists.
 
 ## Responsible-use note
 

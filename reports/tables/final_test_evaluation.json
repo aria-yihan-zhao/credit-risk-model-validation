@@ -1,0 +1,51 @@
+{
+  "governance": {
+    "evaluation_type": "single locked final test evaluation",
+    "evaluated_at_utc": "2026-11-12T07:36:58.234545+00:00",
+    "evaluated_commit": "c72e35839b3758e24e82bd85812423085a58cd2d",
+    "rows": 6000,
+    "calibration_method": "raw",
+    "threshold": 0.16666666666666666,
+    "false_negative_cost_ratio": 5.0,
+    "retuning_after_test": false
+  },
+  "probability_metrics": {
+    "roc_auc": 0.7866937017815149,
+    "pr_auc": 0.5713262346012393,
+    "brier_score": 0.1317019909620285,
+    "log_loss": 0.42180126905441284,
+    "ece_10_bin": 0.00976617474108935
+  },
+  "bootstrap_95_percent_intervals": {
+    "roc_auc": {
+      "ci_2_5": 0.7715840432605072,
+      "ci_97_5": 0.8015883181085981
+    },
+    "pr_auc": {
+      "ci_2_5": 0.5415204437712887,
+      "ci_97_5": 0.5983664951994924
+    },
+    "brier_score": {
+      "ci_2_5": 0.12623881436884404,
+      "ci_97_5": 0.13709924630820752
+    },
+    "log_loss": {
+      "ci_2_5": 0.4076158575713634,
+      "ci_97_5": 0.4359419420361519
+    }
+  },
+  "decision_metrics": {
+    "threshold": 0.16666666666666666,
+    "false_negative_cost_ratio": 5.0,
+    "flag_rate": 0.4236666666666667,
+    "precision": 0.3851298190401259,
+    "recall": 0.7377543330821401,
+    "specificity": 0.6655253584421142,
+    "true_positive": 979,
+    "false_positive": 1563,
+    "true_negative": 3110,
+    "false_negative": 348,
+    "normalized_cost_per_account": 0.5505
+  },
+  "development_to_test_score_psi": 0.0028780470250250488
+}
